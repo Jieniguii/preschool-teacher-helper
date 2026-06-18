@@ -531,7 +531,7 @@ textarea {
     <div class="card">
       <div class="card-title"><span class="icon">📂</span> 已保存的观察记录</div>
       <div class="notice">
-        💡 这里保存的是你每次生成观察记录时点击"保存到历史"的内容。历史记录可用于期末报告汇总。
+        💡 保存的记录存储在 <code>data/records/</code> 文件夹中，每个孩子一条 .json 文件。复制整个 data 文件夹即可备份。
       </div>
       <div id="history-list">
         <div class="empty-state">
@@ -602,29 +602,53 @@ function showToast(msg) {
 }
 
 // ============================================================
-// 数据存储
+// 数据存储（通过本地 API 存到 data/records/ 文件夹）
 // ============================================================
-const STORAGE_KEY = 'teacher_records';
-
-function getRecords() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-  catch(e) { return []; }
+async function getRecords() {
+  try {
+    const res = await fetch('/api/records');
+    if (!res.ok) throw new Error('请求失败');
+    return await res.json();
+  } catch(e) {
+    console.error('读取记录失败:', e);
+    return [];
+  }
 }
 
-function saveRecord(record) {
-  const records = getRecords();
-  records.unshift({ ...record, id: Date.now(), savedAt: new Date().toISOString() });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+async function saveRecord(record) {
+  try {
+    const res = await fetch('/api/records', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...record,
+        id: Date.now(),
+        savedAt: new Date().toISOString()
+      })
+    });
+    return await res.json();
+  } catch(e) {
+    console.error('保存记录失败:', e);
+    showToast('保存失败，请确认服务已启动');
+    return { ok: false };
+  }
 }
 
-function deleteRecord(id) {
-  const records = getRecords().filter(r => r.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+async function deleteRecord(id) {
+  try {
+    await fetch(`/api/records/${id}`, { method: 'DELETE' });
+  } catch(e) {
+    console.error('删除记录失败:', e);
+  }
 }
 
-function clearHistory() {
+async function clearHistory() {
   if (confirm('确定要清空全部历史记录？此操作不可恢复。')) {
-    localStorage.removeItem(STORAGE_KEY);
+    try {
+      await fetch('/api/records', { method: 'DELETE' });
+    } catch(e) {
+      console.error('清空记录失败:', e);
+    }
     renderHistory();
     showToast('已清空全部记录');
   }
@@ -782,7 +806,7 @@ function polishText(text) {
 }
 
 // 保存观察记录到历史
-function saveCurrentObsRecord() {
+async function saveCurrentObsRecord() {
   const resultHtml = document.getElementById('obs-result').innerHTML;
   if (!resultHtml || document.getElementById('obs-result').classList.contains('empty')) {
     showToast('请先生成观察记录'); return;
@@ -794,7 +818,7 @@ function saveCurrentObsRecord() {
   const what = document.getElementById('obs-what').value.trim();
   const age = document.getElementById('obs-age').value;
 
-  saveRecord({
+  await saveRecord({
     type: 'observation',
     name,
     age: ageLabels[age] || age,
@@ -1013,8 +1037,8 @@ function getPositiveTrait() {
 // ============================================================
 // 历史记录渲染
 // ============================================================
-function renderHistory() {
-  const records = getRecords();
+async function renderHistory() {
+  const records = await getRecords();
   const list = document.getElementById('history-list');
   const actions = document.getElementById('history-actions');
 
@@ -1041,8 +1065,8 @@ function renderHistory() {
   `).join('');
 }
 
-function viewHistoryItem(id) {
-  const records = getRecords();
+async function viewHistoryItem(id) {
+  const records = await getRecords();
   const r = records.find(rec => rec.id === id);
   if (!r) return;
   // 显示在模态风格的弹窗中
@@ -1065,8 +1089,8 @@ function viewHistoryItem(id) {
   `);
 }
 
-function loadToReport(id) {
-  const records = getRecords();
+async function loadToReport(id) {
+  const records = await getRecords();
   const r = records.find(rec => rec.id === id);
   if (!r) return;
   // 将观察内容导入到报告表单
@@ -1085,11 +1109,11 @@ function loadToReport(id) {
   showToast('已导入到报告表单');
 }
 
-function deleteHistoryItem(id) {
-  const records = getRecords();
+async function deleteHistoryItem(id) {
+  const records = await getRecords();
   const r = records.find(rec => rec.id === id);
   if (!confirm(`确定删除"${r?.name || ''}"的这条记录？`)) return;
-  deleteRecord(id);
+  await deleteRecord(id);
   renderHistory();
   showToast('已删除');
 }
