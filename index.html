@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幼师助手 — 观察记录 & 期末报告生成器</title>
+<style>
+:root {
+  --bg: #fdf6ee;
+  --card: #ffffff;
+  --primary: #c88b5d;
+  --primary-light: #f5e6d8;
+  --green: #7a9e7e;
+  --green-light: #e8f0ea;
+  --text: #3a3a3a;
+  --text-light: #8a8a8a;
+  --border: #e8ddd0;
+  --danger: #d4756b;
+  --danger-light: #fce8e6;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+.container { max-width: 820px; margin:0 auto; padding: 24px 20px 60px; }
+
+/* Header */
+.header {
+  text-align: center;
+  padding: 32px 0 20px;
+}
+.header h1 {
+  font-size: 2rem;
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.header .subtitle {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 6px;
+  box-shadow: var(--shadow);
+}
+.tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-light);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--primary); }
+.tab-btn.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Card */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title .icon { font-size: 1.3rem; }
+
+/* Form */
+.form-group {
+  margin-bottom: 18px;
+}
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form-row.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text);
+  background: #fefdfb;
+  transition: border-color 0.2s;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+}
+textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.6;
+}
+
+/* Checkbox group */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  user-select: none;
+}
+.checkbox-item:hover {
+  border-color: var(--green);
+}
+.checkbox-item.checked {
+  background: var(--green-light);
+  border-color: var(--green);
+  color: #3a3a3a;
+}
+.checkbox-item input { display: none; }
+
+/* Scene tags */
+.scene-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.scene-tag {
+  padding: 8px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  user-select: none;
+}
+.scene-tag:hover { border-color: var(--primary); }
+.scene-tag.selected {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+  padding: 11px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: #b87a4e; }
+.btn-green {
+  background: var(--green);
+  color: #fff;
+}
+.btn-green:hover { background: #6b8e6e; }
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-sm { padding: 7px 14px; font-size: 0.85rem; }
+.btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+/* Result */
+.result-box {
+  background: #fefdfb;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  min-height: 120px;
+  line-height: 1.8;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.result-box.empty {
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.result-box h2,
+.result-box h3 {
+  color: var(--primary);
+  margin: 16px 0 8px;
+}
+.result-box h2:first-child,
+.result-box h3:first-child { margin-top: 0; }
+.result-box h2 { font-size: 1.15rem; }
+.result-box h3 { font-size: 1.05rem; }
+.result-box .highlight { color: var(--green); font-weight: 500; }
+.result-box hr { border: none; border-top: 1px dashed var(--border); margin: 16px 0; }
+
+/* History */
+.history-item {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.history-item .meta {
+  flex: 1;
+  min-width: 0;
+}
+.history-item .name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.history-item .info {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+.history-item .preview {
+  color: var(--text);
+  font-size: 0.88rem;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.history-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.empty-state {
+  text-align: center;
+  color: var(--text-light);
+  padding: 40px 20px;
+}
+.empty-state .icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+/* Notice */
+.notice {
+  background: var(--green-light);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  color: #5a7a5e;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* Saved observations for report */
+.saved-select {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+.saved-select-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.saved-select-item:hover { background: var(--bg); }
+.saved-select-item input { margin: 0; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--green);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  z-index: 1000;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 1.5s forwards;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+@keyframes toastIn { from { opacity:0; transform:translateX(-50%) translateY(-8px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+@keyframes toastOut { from { opacity:1; } to { opacity:0; } }
+
+/* Footer */
+.footer {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.82rem;
+  padding-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container { padding: 16px 12px 40px; }
+  .card { padding: 20px 16px; }
+  .form-row, .form-row.three { grid-template-columns: 1fr; }
+  .header h1 { font-size: 1.5rem; }
+  .tabs { gap: 4px; }
+  .tab-btn { padding: 10px 8px; font-size: 0.85rem; }
+  .btn-group { flex-direction: column; }
+  .btn-group .btn { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🦞 幼师助手</h1>
+    <p class="subtitle">观察记录 · 期末评估报告 — 专业生成器</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('observation')">📝 观察记录</button>
+    <button class="tab-btn" onclick="switchTab('report')">📊 期末报告</button>
+    <button class="tab-btn" onclick="switchTab('history')">📂 历史记录</button>
+  </div>
+
+  <!-- ==================== 观察记录 ==================== -->
+  <div id="tab-observation" class="tab-content">
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📝</span> 填写观察信息</div>
+
+      <div class="form-row three">
+        <div class="form-group">
+          <label>孩子姓名</label>
+          <input type="text" id="obs-name" placeholder="如：小明">
+        </div>
+        <div class="form-group">
+          <label>年龄</label>
+          <select id="obs-age">
+            <option value="">请选择</option>
+            <option value="3-4">3-4岁（小班）</option>
+            <option value="4-5">4-5岁（中班）</option>
+            <option value="5-6">5-6岁（大班）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>观察日期</label>
+          <input type="date" id="obs-date">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>观察场景</label>
+        <div class="scene-tags" id="obs-scene">
+          <span class="scene-tag" data-scene="区角活动">区角活动</span>
+          <span class="scene-tag" data-scene="户外活动">户外活动</span>
+          <span class="scene-tag" data-scene="集体教学活动">集体教学</span>
+          <span class="scene-tag" data-scene="自由游戏">自由游戏</span>
+          <span class="scene-tag" data-scene="生活环节">生活环节</span>
+          <span class="scene-tag" data-scene="同伴交往">同伴交往</span>
+          <span class="scene-tag" data-scene="艺术创作">艺术创作</span>
+          <span class="scene-tag" data-scene="其他">其他</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>发生了什么？（用口语简单记就行）</label>
+        <textarea id="obs-what" placeholder="例：今天区域游戏时，小明选了建构区，用积木搭了一座桥。搭到一半桥倒了，他没有放弃，重新开始尝试，最后成功了。他还主动邀请旁边的小红来看他的桥。"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>孩子的语言 / 行为细节（可选，有印象就写）</label>
+        <textarea id="obs-detail" placeholder="例：他说"你看我的桥，上面还能走车"。搭桥失败时皱着眉头，但没有哭，自己说"再来一次"。"></textarea>
+      </div>
+
+      <button class="btn btn-primary" onclick="generateObservation()" style="width:100%;justify-content:center;padding:13px;">
+        ✨ 生成观察记录
+      </button>
+    </div>
+
+    <!-- Result -->
+    <div class="card" id="obs-result-card">
+      <div class="card-title"><span class="icon">📄</span> 生成结果</div>
+      <div class="result-box empty" id="obs-result">点击上方按钮生成观察记录</div>
+      <div class="btn-group" id="obs-result-actions" style="display:none;">
+        <button class="btn btn-green" onclick="copyResult('obs-result')">📋 一键复制</button>
+        <button class="btn btn-outline" onclick="saveCurrentObsRecord()">💾 保存到历史</button>
+        <button class="btn btn-outline btn-sm" onclick="downloadResult('obs-result', '观察记录')">📥 下载Word</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 期末报告 ==================== -->
+  <div id="tab-report" class="tab-content" style="display:none;">
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📊</span> 填写报告信息</div>
+
+      <div class="form-row three">
+        <div class="form-group">
+          <label>孩子姓名</label>
+          <input type="text" id="rpt-name" placeholder="如：小明">
+        </div>
+        <div class="form-group">
+          <label>年龄</label>
+          <select id="rpt-age">
+            <option value="">请选择</option>
+            <option value="3-4">3-4岁（小班）</option>
+            <option value="4-5">4-5岁（中班）</option>
+            <option value="5-6">5-6岁（大班）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>学期</label>
+          <select id="rpt-semester">
+            <option value="上学期">上学期</option>
+            <option value="下学期">下学期</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>本学期重要观察片段（可选多条，每条一段）</label>
+        <textarea id="rpt-observations" rows="6" placeholder="支持两种方式：
+
+方式1——从历史记录导入：右侧点击"从历史导入"
+方式2——手动输入：一段一条，讲清楚什么场景下孩子做了什么，展现了什么
+
+例：
+1. 建构区搭积木时，小明尝试了3次才成功搭好桥，过程中没有放弃，还主动帮助同伴搬运积木。
+2. 语言活动中，小明能完整复述故事的主要情节，并能表达自己对故事角色的看法。
+3. 户外攀爬时，小明从不敢爬高到第3周能独立完成攀爬架全程，进步明显。"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>重点关注领域（多选）</label>
+        <div class="checkbox-group" id="rpt-domains">
+          <label class="checkbox-item"><input type="checkbox" value="健康"> 健康</label>
+          <label class="checkbox-item"><input type="checkbox" value="语言"> 语言</label>
+          <label class="checkbox-item"><input type="checkbox" value="社会"> 社会</label>
+          <label class="checkbox-item"><input type="checkbox" value="科学"> 科学</label>
+          <label class="checkbox-item"><input type="checkbox" value="艺术"> 艺术</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>家长特别关注（可选）</label>
+        <input type="text" id="rpt-parent-concern" placeholder="如：孩子太内向不爱说话 / 吃饭挑食 / 注意力不集中">
+      </div>
+
+      <button class="btn btn-primary" onclick="generateReport()" style="width:100%;justify-content:center;padding:13px;">
+        ✨ 生成期末评估报告
+      </button>
+    </div>
+
+    <!-- Result -->
+    <div class="card" id="rpt-result-card">
+      <div class="card-title"><span class="icon">📄</span> 生成结果</div>
+      <div class="result-box empty" id="rpt-result">点击上方按钮生成期末报告</div>
+      <div class="btn-group" id="rpt-result-actions" style="display:none;">
+        <button class="btn btn-green" onclick="copyResult('rpt-result')">📋 一键复制</button>
+        <button class="btn btn-outline" onclick="downloadResult('rpt-result', '期末评估报告')">📥 下载Word</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 历史记录 ==================== -->
+  <div id="tab-history" class="tab-content" style="display:none;">
+    <div class="card">
+      <div class="card-title"><span class="icon">📂</span> 已保存的观察记录</div>
+      <div class="notice">
+        💡 这里保存的是你每次生成观察记录时点击"保存到历史"的内容。历史记录可用于期末报告汇总。
+      </div>
+      <div id="history-list">
+        <div class="empty-state">
+          <span class="icon">📭</span>
+          <p>还没有保存过记录</p>
+          <p style="font-size:0.85rem;">生成观察记录后点击"保存到历史"即可</p>
+        </div>
+      </div>
+      <div class="btn-group" id="history-actions" style="display:none;">
+        <button class="btn btn-outline btn-sm" onclick="clearHistory()">🗑 清空全部</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">🦞 幼师助手 · 让专业记录不再耗时</div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" style="display:none;"></div>
+
+<script>
+// ============================================================
+// Tab 切换
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`tab-${tab}`).style.display = 'block';
+  if (tab === 'history') renderHistory();
+}
+
+// ============================================================
+// UI 交互
+// ============================================================
+// 场景选择
+document.getElementById('obs-scene').addEventListener('click', function(e) {
+  if (e.target.classList.contains('scene-tag')) {
+    this.querySelectorAll('.scene-tag').forEach(t => t.classList.remove('selected'));
+    e.target.classList.add('selected');
+  }
+});
+
+// Checkbox 样式
+document.querySelectorAll('.checkbox-item').forEach(item => {
+  item.addEventListener('click', function() {
+    const cb = this.querySelector('input');
+    cb.checked = !cb.checked;
+    this.classList.toggle('checked', cb.checked);
+  });
+});
+
+// 默认日期
+document.getElementById('obs-date').value = new Date().toISOString().split('T')[0];
+
+// ============================================================
+// Toast
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  // Re-trigger animation
+  t.style.animation = 'none';
+  void t.offsetWidth;
+  t.style.animation = '';
+  setTimeout(() => t.style.display = 'none', 2000);
+}
+
+// ============================================================
+// 数据存储
+// ============================================================
+const STORAGE_KEY = 'teacher_records';
+
+function getRecords() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+
+function saveRecord(record) {
+  const records = getRecords();
+  records.unshift({ ...record, id: Date.now(), savedAt: new Date().toISOString() });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+
+function deleteRecord(id) {
+  const records = getRecords().filter(r => r.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+
+function clearHistory() {
+  if (confirm('确定要清空全部历史记录？此操作不可恢复。')) {
+    localStorage.removeItem(STORAGE_KEY);
+    renderHistory();
+    showToast('已清空全部记录');
+  }
+}
+
+// ============================================================
+// 观察记录生成
+// ============================================================
+function generateObservation() {
+  const name = document.getElementById('obs-name').value.trim();
+  const age = document.getElementById('obs-age').value;
+  const date = document.getElementById('obs-date').value;
+  const sceneEl = document.querySelector('#obs-scene .scene-tag.selected');
+  const scene = sceneEl ? sceneEl.dataset.scene : '';
+  const what = document.getElementById('obs-what').value.trim();
+  const detail = document.getElementById('obs-detail').value.trim();
+
+  if (!name) { showToast('请填写孩子姓名'); return; }
+  if (!age) { showToast('请选择年龄'); return; }
+  if (!scene) { showToast('请选择观察场景'); return; }
+  if (!what) { showToast('请填写"发生了什么"'); return; }
+
+  const result = buildObservationRecord({ name, age, date, scene, what, detail });
+  document.getElementById('obs-result').innerHTML = result;
+  document.getElementById('obs-result').classList.remove('empty');
+  document.getElementById('obs-result-actions').style.display = 'flex';
+  document.getElementById('obs-result-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function buildObservationRecord(data) {
+  const { name, age, date, scene, what, detail } = data;
+  const ageGroup = ageLabels[age] || age;
+  const sceneAnalysis = getSceneAnalysis(scene);
+  const cleanedWhat = polishText(what);
+  const cleanedDetail = detail ? polishText(detail) : '';
+
+  const parts = [];
+
+  // 标题
+  parts.push(`<h2>🖊 幼儿观察记录</h2>`);
+  parts.push(`<hr>`);
+  parts.push(`<strong>观察对象：</strong>${name}　|　<strong>年龄段：</strong>${ageGroup}　|　<strong>日期：</strong>${date}`);
+  parts.push(`<strong>观察场景：</strong>${scene}`);
+  parts.push(``);
+
+  // 一、客观描述
+  parts.push(`<h3>一、客观描述</h3>`);
+  parts.push(`<p>在今日${scene}中，${name}${cleanedWhat}</p>`);
+  if (cleanedDetail) {
+    parts.push(`<p>具体行为与语言表现：${cleanedDetail}</p>`);
+  }
+  parts.push(``);
+
+  // 二、行为分析
+  parts.push(`<h3>二、行为分析</h3>`);
+  parts.push(`<p>${sceneAnalysis.analysis}</p>`);
+  parts.push(``);
+
+  // 三、发展解读
+  parts.push(`<h3>三、发展解读</h3>`);
+  parts.push(`<p>根据《3-6岁儿童学习与发展指南》，${ageGroup}幼儿在${sceneAnalysis.domain}方面的发展参考如下：</p>`);
+  parts.push(`<p>${sceneAnalysis.guide}</p>`);
+  if (cleanedDetail) {
+    parts.push(`<p>该幼儿的语言表达${cleanedDetail.includes('说') || cleanedDetail.includes('表达') ? '具有一定完整性和情境性，能够围绕当前活动进行交流' : '在活动中展现出了${sceneAnalysis.expressionTrait}'}，符合该年龄段幼儿的发展特点。</p>`);
+  }
+  parts.push(``);
+
+  // 四、支持建议
+  parts.push(`<h3>四、教育支持建议</h3>`);
+  parts.push(`<p>${sceneAnalysis.suggestion}</p>`);
+  parts.push(``);
+
+  // 分析人留空
+  parts.push(`<hr>`);
+  parts.push(`<span style="color:#8a8a8a;">记录教师：__________　审核：__________</span>`);
+
+  return parts.join('\n');
+}
+
+// 场景分析库
+function getSceneAnalysis(scene) {
+  const lib = {
+    '区角活动': {
+      domain: '自主选择与探究',
+      analysis: '该幼儿在区角活动中自主选择了活动内容，在操作材料的过程中表现出了一定的计划性和坚持性。在遇到困难时，该幼儿的应对方式反映出其问题解决能力的发展水平。与材料的互动质量、专注时长以及是否有创造性玩法，是本次观察的重点维度。',
+      guide: '该年龄段幼儿在区角活动中应能够根据自己的兴趣选择活动，并能在活动中保持一定的专注。通过操作材料，幼儿的精细动作、空间感知和初步逻辑思维得到发展。同伴间的平行游戏和简单合作开始出现。',
+      expressionTrait: '较好的情境表达能力',
+      suggestion: '1. 在该幼儿感兴趣的区角中，适度增加材料难度（如在建构区提供不同规格的积木或辅助材料），支持其在"最近发展区"内挑战自我。\n2. 教师可通过"你看……还能怎么玩？"等开放式提问，引导该幼儿拓展玩法，促进创造性思维。\n3. 观察该幼儿在区角中的同伴互动模式，适时介入引导合作。'
+    },
+    '户外活动': {
+      domain: '大肌肉运动与社会性发展',
+      analysis: '户外活动提供了大肌肉锻炼、冒险探索和同伴协作的天然场景。该幼儿在户外活动中的运动能力、规则意识、安全意识和与同伴的互动模式，综合反映了其身体素质和社交能力的发展状况。',
+      guide: '该年龄段幼儿应能在户外活动中发展走、跑、跳、攀爬等基本动作技能，并逐步建立规则意识和安全意识。户外活动也是幼儿释放精力、发展情绪调节能力的重要途径。',
+      expressionTrait: '良好的社会性互动意识',
+      suggestion: '1. 根据该幼儿的运动发展水平，设计有梯度的体能挑战（如攀爬高度、跳跃距离），让其在安全范围内获得成功体验。\n2. 利用户外集体游戏机会，引导该幼儿学习轮流等待、团队合作的社交规则。\n3. 关注运动过程中的情绪变化，如出现畏难或过度兴奋时，给予适当引导。'
+    },
+    '集体教学活动': {
+      domain: '认知参与与学习品质',
+      analysis: '在集体教学情境中，该幼儿的注意力集中程度、参与互动的主动性、对教师提问的回应质量以及遵守课堂常规的能力，综合体现了其学习品质的发展水平。重点观察其是主动参与还是被动跟随、能否在集体中表达自己的观点。',
+      guide: '该年龄段幼儿在集体教学活动中应能够保持一定的注意力时长，积极参与师幼互动，并能在成人引导下遵守基本活动规则。幼儿对提问的回应方式、是否能联系已有经验进行思考，反映了其认知发展水平。',
+      expressionTrait: '一定的独立思考能力',
+      suggestion: '1. 对于该幼儿感兴趣的内容，可设计个别化提问，引导其深入思考和表达。\n2. 对于注意力容易分散的幼儿，可通过调整座位、增加互动频率等方式提高参与度。\n3. 在集体活动中创造该幼儿展示自己优势的机会，增强其在集体中的自信心。'
+    },
+    '自由游戏': {
+      domain: '想象力与同伴交往',
+      analysis: '自由游戏是幼儿自主性最高、最具创造性的活动形式。该幼儿在自由游戏中的选择偏好、游戏主题的复杂程度、角色扮演的投入度以及同伴间的协商与合作，直接反映了其社会认知、语言表达和想象力的发展水平。',
+      guide: '该年龄段幼儿应在自由游戏中能主动发起或加入同伴游戏，能运用语言进行角色协商和情节推进。游戏中出现的问题（如争抢玩具、角色分配冲突）是幼儿学习社交技能的天然机会。',
+      expressionTrait: '较为丰富的想象力和表达欲',
+      suggestion: '1. 尊重该幼儿的游戏选择，在安全前提下给予充分的自主空间。\n2. 当出现同伴冲突时，先观察幼儿能否自行解决，必要时引导其用语言协商而非肢体表达。\n3. 可适时以"游戏伙伴"身份加入，通过角色互动拓展游戏情节，丰富幼儿的游戏经验。'
+    },
+    '生活环节': {
+      domain: '生活习惯与自理能力',
+      analysis: '生活环节是观察幼儿自理能力、规则意识和情绪状态的重要窗口。该幼儿在进餐、午睡、如厕、整理物品等环节中的独立程度和习惯养成情况，直接反映了家庭和幼儿园教育配合的效果。',
+      guide: '根据年龄段的不同，该幼儿应在饮食、睡眠、个人卫生等方面逐步实现自理。在集体生活环境中，遵守作息规律、参与值日劳动、整理个人物品等行为，是幼儿社会适应能力的重要体现。',
+      expressionTrait: '逐渐增强的自我管理意识',
+      suggestion: '1. 对于自理能力较强的幼儿，可赋予"小帮手"角色（如协助分发餐具），增强责任感和成就感。\n2. 对于仍在进步中的幼儿，采用"小步前进"策略，每次聚焦一个具体目标（如"今天自己穿鞋"），及时给与正向反馈。\n3. 与家长沟通，确保家庭和幼儿园在生活习惯培养上保持一致。'
+    },
+    '同伴交往': {
+      domain: '社会性与情绪能力',
+      analysis: '同伴交往是幼儿社会性发展的核心场景。该幼儿在与同伴互动中的发起方式、回应模式、解决冲突的策略以及共情能力，是判断其社会性发展水平的关键指标。尤其关注其能否理解他人感受、能否在冲突中采取建设性方式解决问题。',
+      guide: '该年龄段幼儿应能够主动参与同伴互动，能运用简单的社交策略（如分享、轮流、邀请）。幼儿开始发展共情能力，能识别同伴的基本情绪，但还需要成人的引导来解决复杂的人际问题。',
+      expressionTrait: '可塑性较强的社交策略',
+      suggestion: '1. 在日常活动中创造该幼儿与不同性格同伴互动的机会，帮助其积累多元社交经验。\n2. 当该幼儿成功解决社交问题（如主动分享、化解冲突）时，及时肯定具体行为而非笼统表扬。\n3. 对于社交中受挫的幼儿，不要急于替其解决问题，而是引导其思考和尝试不同的交往策略。'
+    },
+    '艺术创作': {
+      domain: '审美感受与创造性表现',
+      analysis: '艺术创作（美术、音乐、舞蹈等）是幼儿表达内心世界的重要途径。该幼儿在创作过程中的主动性、对材料和工具的运用方式、作品的主题和细节表现，以及对自己作品的解读，反映了其审美感知、想象力、精细动作和语言表达的综合发展。',
+      guide: '该年龄段幼儿应能运用多种材料和工具进行自由创作，能用线条、色彩和形状表达自己的感受。幼儿在创作后的讲述是语言和思维发展的重要环节，教师应关注其创作过程而非仅评价最终作品。',
+      expressionTrait: '独特的审美偏好和表现方式',
+      suggestion: '1. 提供丰富多样的创作材料（自然材料、废旧材料、不同质地的纸张和画笔），激发幼儿的创作兴趣。\n2. 用"请跟我讲讲你的画"代替"你画的是什么"，鼓励幼儿表达创作想法而非追求成人眼中的"像"。\n3. 展示该幼儿的作品并让其向同伴介绍，增强自信心和表达欲。'
+    }
+  };
+  return lib[scene] || {
+    domain: '综合发展',
+    analysis: '本次观察中，该幼儿的行为表现涉及多个发展领域的互动。通过具体行为细节，可以综合评估其认知、情感和社交方面的发展状况。',
+    guide: '该年龄段幼儿正处于快速发展的阶段，每一次活动中的表现都是多方面能力的综合体现。教师应关注幼儿的整体发展而非单一维度的表现。',
+    expressionTrait: '个体化的发展特点',
+    suggestion: '1. 基于本次观察的具体情况，关注该幼儿的优势领域并给予充分的发展空间。\n2. 对于观察中发现的待发展方面，在日常活动中创设针对性的支持环境。\n3. 持续跟踪观察，积累更多数据以便全面评估。'
+  };
+}
+
+// 年龄段标签
+const ageLabels = { '3-4': '3-4岁（小班）', '4-5': '4-5岁（中班）', '5-6': '5-6岁（大班）' };
+
+// 轻度文本整理
+function polishText(text) {
+  // 去掉常见的口语化主观词，保持客观性
+  return text
+    .replace(/^我觉得[，,]?/g, '')
+    .replace(/^我感觉[，,]?/g, '')
+    .replace(/^很好看[，,]?/g, '')
+    .replace(/表现得很好/g, '')
+    .replace(/很棒/g, '')
+    .replace(/非常听话/g, '');
+}
+
+// 保存观察记录到历史
+function saveCurrentObsRecord() {
+  const resultHtml = document.getElementById('obs-result').innerHTML;
+  if (!resultHtml || document.getElementById('obs-result').classList.contains('empty')) {
+    showToast('请先生成观察记录'); return;
+  }
+
+  const name = document.getElementById('obs-name').value.trim();
+  const date = document.getElementById('obs-date').value;
+  const scene = (document.querySelector('#obs-scene .scene-tag.selected') || {}).dataset?.scene || '';
+  const what = document.getElementById('obs-what').value.trim();
+  const age = document.getElementById('obs-age').value;
+
+  saveRecord({
+    type: 'observation',
+    name,
+    age: ageLabels[age] || age,
+    date,
+    scene,
+    what: what.slice(0, 80) + (what.length > 80 ? '...' : ''),
+    result: resultHtml,
+    ageValue: age
+  });
+  showToast('已保存到历史记录');
+}
+
+// ============================================================
+// 期末报告生成
+// ============================================================
+function generateReport() {
+  const name = document.getElementById('rpt-name').value.trim();
+  const age = document.getElementById('rpt-age').value;
+  const semester = document.getElementById('rpt-semester').value;
+  const observations = document.getElementById('rpt-observations').value.trim();
+  const domains = Array.from(document.querySelectorAll('#rpt-domains input:checked')).map(cb => cb.value);
+  const parentConcern = document.getElementById('rpt-parent-concern').value.trim();
+  const year = new Date().getFullYear();
+
+  if (!name) { showToast('请填写孩子姓名'); return; }
+  if (!age) { showToast('请选择年龄'); return; }
+  if (!observations) { showToast('请填写本学期观察片段'); return; }
+
+  // 解析观察片段
+  const obsItems = parseObservations(observations);
+  const allDomains = domains.length > 0 ? domains : ['健康', '语言', '社会', '科学', '艺术'];
+
+  const result = buildFinalReport({
+    name, age, semester, obsItems, domains: allDomains,
+    parentConcern, year, ageLabel: ageLabels[age]
+  });
+
+  document.getElementById('rpt-result').innerHTML = result;
+  document.getElementById('rpt-result').classList.remove('empty');
+  document.getElementById('rpt-result-actions').style.display = 'flex';
+  document.getElementById('rpt-result-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function parseObservations(text) {
+  // 按数字编号或换行分割
+  const items = [];
+  const lines = text.split(/[\n\r]+/).filter(l => l.trim());
+  for (const line of lines) {
+    const cleaned = line.replace(/^\d+[\.、)\s]+/, '').trim();
+    if (cleaned) items.push(cleaned);
+  }
+  if (items.length === 0 && text.trim()) items.push(text.trim());
+  return items;
+}
+
+function buildFinalReport(data) {
+  const { name, age, semester, obsItems, domains, parentConcern, year, ageLabel } = data;
+
+  const parts = [];
+
+  // 标题
+  parts.push(`<h2>📊 幼儿期末成长评估报告</h2>`);
+  parts.push(`<hr>`);
+  parts.push(`<strong>幼儿姓名：</strong>${name}　|　<strong>年龄：</strong>${ageLabel}`);
+  parts.push(`<strong>评估学期：</strong>${year}年${semester}　|　<strong>评估教师：</strong>__________`);
+  parts.push(``);
+
+  // 一、整体概述
+  parts.push(`<h3>一、本学期整体发展概述</h3>`);
+  const overviewText = buildOverview(name, age, obsItems);
+  parts.push(`<p>${overviewText}</p>`);
+  parts.push(``);
+
+  // 二、各领域分析
+  parts.push(`<h3>二、各领域发展分析</h3>`);
+  for (const domain of domains) {
+    const analysis = buildDomainAnalysis(name, age, domain, obsItems);
+    parts.push(`<p><span class="highlight">【${domain}领域】</span>${analysis}</p>`);
+  }
+  parts.push(``);
+
+  // 三、成长亮点
+  parts.push(`<h3>三、本学期成长亮点</h3>`);
+  const highlights = buildHighlights(name, obsItems);
+  parts.push(highlights);
+  parts.push(``);
+
+  // 四、待发展方面
+  parts.push(`<h3>四、待发展方面与教育建议</h3>`);
+  const improvements = buildImprovements(name, age, obsItems, domains, parentConcern);
+  parts.push(improvements);
+  parts.push(``);
+
+  // 五、下学期重点
+  parts.push(`<h3>五、下学期重点关注</h3>`);
+  const nextSteps = buildNextSteps(name, age, domains, parentConcern);
+  parts.push(nextSteps);
+  parts.push(``);
+
+  // 六、给家长的话
+  parts.push(`<h3>六、致家长</h3>`);
+  parts.push(`<p>亲爱的${name}家长：</p>`);
+  parts.push(`<p>每个孩子都是一颗独特的种子，有着自己的生长节奏。${name}在这个学期里展现出了${getPositiveTrait()}，这是非常宝贵的成长力量。我们看到了他/她的努力和进步，也看到了需要继续浇灌的土壤。</p>`);
+  parts.push(`<p>假期是亲子互动的黄金时间，建议您：多和孩子聊天，多创造一起做事的机会。比起"教"，更重要的是让孩子感受到您的关注和陪伴。如果您对孩子的发展有任何疑问，随时欢迎和老师沟通。</p>`);
+  parts.push(`<p>期待${name}在下个学期带给我们更多惊喜！</p>`);
+  parts.push(``);
+  parts.push(`<hr>`);
+  parts.push(`<span style="color:#8a8a8a;">评估日期：${year}年${semester === '上学期' ? '1' : '7'}月　教师签名：__________</span>`);
+
+  return parts.join('\n');
+}
+
+function buildOverview(name, age, obsItems) {
+  const count = obsItems.length;
+  if (count <= 1) {
+    return `${name}本学期的成长轨迹逐渐清晰。通过日常观察，我们看到了他/她在多项活动中展现出的发展潜力。总体而言，${name}在适应集体生活、参与各类活动方面表现出了积极的态度，为未来的学习和发展奠定了良好基础。`;
+  }
+  return `${name}在本学期中经历了丰富多彩的幼儿园生活。通过${count}次重点观察记录，我们看到了他/她在多个领域的发展和成长。整体来看，${name}在活动参与度、同伴交往和学习品质方面均有令人欣喜的进步，展现了${ageLabels[age] || ''}幼儿应有的发展活力。`;
+}
+
+function buildDomainAnalysis(name, age, domain, obsItems) {
+  const lib = getDomainAnalysisLib(name, age);
+  // 根据观察内容尝试匹配
+  const matchedObs = obsItems.filter(o => domainKeywords[domain]?.some(kw => o.includes(kw)));
+  const specificPart = matchedObs.length > 0
+    ? `具体表现为：${matchedObs[0]}`
+    : `${name}在该领域展现了符合年龄特点的发展水平。`;
+
+  return `${lib[domain]?.base || ''}${specificPart}`;
+}
+
+const domainKeywords = {
+  '健康': ['运动', '跑', '跳', '爬', '攀', '吃饭', '穿衣', '洗手', '睡觉', '自己'],
+  '语言': ['说', '讲', '讲故', '表达', '交流', '对话', '读', '书', '故事', '唱歌'],
+  '社会': ['一起', '帮助', '分享', '朋友', '同伴', '商量', '轮流', '合作', '加入'],
+  '科学': ['数', '搭', '拼', '建', '尝试', '为什么', '观察', '探索', '实验', '发现'],
+  '艺术': ['画', '唱', '做', '跳', '表演', '颜色', '音乐', '手工', '角色', '装扮'],
+};
+
+function getDomainAnalysisLib(name, age) {
+  return {
+    '健康': {
+      base: `${name}在健康领域的发展涵盖了身心状况、动作发展和生活习惯三个方面。`,
+    },
+    '语言': {
+      base: `${name}在语言领域的发展体现在倾听理解、口语表达和早期读写兴趣方面。`,
+    },
+    '社会': {
+      base: `${name}在社会领域表现出对集体活动的兴趣和与同伴交往的意愿。`,
+    },
+    '科学': {
+      base: `${name}在科学探究和数学认知方面展现出了可贵的好奇心和探究欲。`,
+    },
+    '艺术': {
+      base: `${name}在艺术领域能够通过多种方式表达自己的感受和想象。`,
+    },
+  };
+}
+
+function buildHighlights(name, obsItems) {
+  if (obsItems.length === 0) {
+    return `<p>1. ${name}能够较好地适应幼儿园的集体生活，情绪状态稳定。<br>2. 在各项活动中表现出积极参与的态度。</p>`;
+  }
+  const maxHighlights = Math.min(obsItems.length, 4);
+  let result = '';
+  for (let i = 0; i < maxHighlights; i++) {
+    result += `<p>${i + 1}. ${obsItems[i]}</p>`;
+  }
+  return result;
+}
+
+function buildImprovements(name, age, obsItems, domains, parentConcern) {
+  const parts = [];
+  parts.push(`<p>基于本学期的观察，${name}可以在以下方面获得更多支持：</p>`);
+
+  // 根据选中的领域给出建议
+  const suggestions = {
+    '健康': `鼓励${name}在日常生活中更多地进行自我服务（如自己穿衣、整理书包），逐步提升生活自理能力。`,
+    '语言': `在家中多进行亲子阅读和日常对话，鼓励${name}完整地讲述自己的经历和想法，不必急于纠正语法，重在表达的意愿。`,
+    '社会': `创造${name}与不同年龄同伴互动的机会，引导他/她在冲突中学习用语言表达而非情绪化反应。`,
+    '科学': `多为${name}提供动手操作和观察自然的机会（如一起种植物、观察天气），保护其好奇心和探究精神。`,
+    '艺术': `提供丰富的艺术材料和宽松的创作环境，不以"像不像"来评价作品，而是欣赏${name}独特的表达方式。`,
+  };
+
+  let count = 1;
+  for (const d of domains.slice(0, 3)) {
+    if (suggestions[d]) {
+      parts.push(`<p>${count}. ${suggestions[d]}</p>`);
+      count++;
+    }
+  }
+
+  if (parentConcern) {
+    parts.push(`<p>${count}. 关于家长关注的"${parentConcern}"，建议：持续观察并记录日常表现，与老师保持沟通，共同制定适合${name}的成长支持方案。</p>`);
+  }
+
+  return parts.join('\n');
+}
+
+function buildNextSteps(name, age, domains, parentConcern) {
+  const parts = [];
+  parts.push(`<p>1. <strong>发展目标：</strong>重点关注${domains.slice(0, 2).join('和')}领域的进一步发展，结合${name}的兴趣和优势，制定个性化的支持方案。</p>`);
+  parts.push(`<p>2. <strong>家园共育：</strong>建立更紧密的家园沟通机制，定期向家长反馈${name}在园表现，同时了解在家情况，确保教育的一致性。</p>`);
+  parts.push(`<p>3. <strong>观察重点：</strong>下学期将重点观察${name}在${parentConcern ? `"${parentConcern}"方面的变化` : '社交互动和自主学习方面的进展'}，积累更丰富的观察数据。</p>`);
+  return parts.join('\n');
+}
+
+function getPositiveTrait() {
+  const traits = [
+    '可贵的好奇心与求知欲', '温暖友善的交往品质', '坚持不懈的探究精神',
+    '独特的创造力与想象力', '稳步提升的自理能力', '积极向上的成长态度'
+  ];
+  return traits[Math.floor(Math.random() * traits.length)];
+}
+
+// ============================================================
+// 历史记录渲染
+// ============================================================
+function renderHistory() {
+  const records = getRecords();
+  const list = document.getElementById('history-list');
+  const actions = document.getElementById('history-actions');
+
+  if (records.length === 0) {
+    list.innerHTML = `<div class="empty-state"><span class="icon">📭</span><p>还没有保存过记录</p><p style="font-size:0.85rem;">生成观察记录后点击"保存到历史"即可</p></div>`;
+    actions.style.display = 'none';
+    return;
+  }
+
+  actions.style.display = 'flex';
+  list.innerHTML = records.map(r => `
+    <div class="history-item">
+      <div class="meta">
+        <div class="name">${r.name} · ${r.age || ''}</div>
+        <div class="info">${r.date} · ${r.scene} · ${r.type === 'observation' ? '观察记录' : '期末报告'}</div>
+        <div class="preview">${r.what || '（无摘要）'}</div>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-outline btn-sm" onclick="viewHistoryItem(${r.id})">查看</button>
+        <button class="btn btn-outline btn-sm" onclick="loadToReport(${r.id})">导入报告</button>
+        <button class="btn btn-outline btn-sm" style="color:var(--danger);" onclick="deleteHistoryItem(${r.id})">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function viewHistoryItem(id) {
+  const records = getRecords();
+  const r = records.find(rec => rec.id === id);
+  if (!r) return;
+  // 显示在模态风格的弹窗中
+  const w = window.open('', '_blank', 'width=700,height=600');
+  if (!w) {
+    // fallback: 复制到剪贴板
+    navigator.clipboard.writeText(r.result.replace(/<[^>]+>/g, '')).then(() => showToast('已复制到剪贴板'));
+    return;
+  }
+  w.document.write(`
+    <html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${r.name} - ${r.scene} - ${r.date}</title>
+    <style>
+      body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; padding: 30px; max-width: 700px; margin:0 auto; line-height:1.8; color:#3a3a3a; }
+      h2,h3 { color:#c88b5d; }
+    </style>
+    </head><body>${r.result}</body></html>
+  `);
+}
+
+function loadToReport(id) {
+  const records = getRecords();
+  const r = records.find(rec => rec.id === id);
+  if (!r) return;
+  // 将观察内容导入到报告表单
+  const existing = document.getElementById('rpt-observations').value.trim();
+  const newEntry = r.what ? `${r.date} ${r.scene}：${r.what}` : '';
+  const merged = existing ? `${existing}\n${newEntry}` : newEntry;
+  document.getElementById('rpt-observations').value = merged;
+  // 同步姓名和年龄
+  if (!document.getElementById('rpt-name').value) {
+    document.getElementById('rpt-name').value = r.name;
+  }
+  if (!document.getElementById('rpt-age').value && r.ageValue) {
+    document.getElementById('rpt-age').value = r.ageValue;
+  }
+  switchTab('report');
+  showToast('已导入到报告表单');
+}
+
+function deleteHistoryItem(id) {
+  const records = getRecords();
+  const r = records.find(rec => rec.id === id);
+  if (!confirm(`确定删除"${r?.name || ''}"的这条记录？`)) return;
+  deleteRecord(id);
+  renderHistory();
+  showToast('已删除');
+}
+
+// ============================================================
+// 复制 & 下载
+// ============================================================
+function copyResult(resultId) {
+  const el = document.getElementById(resultId);
+  if (!el || el.classList.contains('empty')) return;
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板'))
+    .catch(() => showToast('复制失败，请手动选择'));
+}
+
+function downloadResult(resultId, filename) {
+  const el = document.getElementById(resultId);
+  if (!el || el.classList.contains('empty')) return;
+  const content = el.innerHTML;
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${filename}</title>
+<style>
+  body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; padding: 40px; max-width: 750px; margin:0 auto; line-height:2; color:#3a3a3a; font-size:15px; }
+  h2,h3 { color:#c88b5d; margin-top:24px; }
+  hr { border:none; border-top:1px dashed #e8ddd0; margin:16px 0; }
+  .highlight { color:#7a9e7e; font-weight:500; }
+</style>
+</head>
+<body>${content}</body>
+</html>`;
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/msword;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}-${document.getElementById(resultId === 'obs-result' ? 'obs-name' : 'rpt-name')?.value || ''}.doc`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('下载完成（可用Word打开）');
+}
+
+// ============================================================
+// 初始化
+// ============================================================
+(function init() {
+  // 初始化复选框样式
+  document.querySelectorAll('.checkbox-item input:checked').forEach(cb => {
+    cb.closest('.checkbox-item').classList.add('checked');
+  });
+})();
+</script>
+</body>
+</html>
